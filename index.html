@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .video-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .video {
+            margin: 10px;
+            width: 300px;
+        }
+        img {
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>最新のYouTube動画</h1>
+    <div id="videos" class="video-container"></div>
+
+    <script>
+        const API_KEY = "AIzaSyDfo595l2LQQWWhgWp5Mo89hxSdgr60w1E";  // 取得したAPIキーを入力
+        const CHANNEL_ID = "UC7_MFM9b8hp5kuTSpa8WyOQ";  // 取得したチャンネルIDを入力
+        const API_URL = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet&order=date&maxResults=5`;
+
+        async function fetchVideos() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                const videosDiv = document.getElementById("videos");
+                videosDiv.innerHTML = "";
+
+                data.items.forEach(video => {
+                    const videoId = video.id.videoId;
+                    const title = video.snippet.title;
+                    const thumbnail = video.snippet.thumbnails.high.url;
+
+                    const videoElement = `
+                        <div class="video">
+                            <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">
+                                <img src="${thumbnail}" alt="${title}">
+                            </a>
+                            <p>${title}</p>
+                        </div>
+                    `;
+                    videosDiv.innerHTML += videoElement;
+                });
+            } catch (error) {
+                console.error("YouTube APIの取得に失敗しました", error);
+            }
+        }
+
+        fetchVideos();
+    </script>
+</body>
+</html>
