@@ -7,59 +7,139 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
             text-align: center;
+        }
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 5px;
+        }
+        .active {
+            background: #666;
         }
         .video-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
+            gap: 15px;
         }
         .video {
-            margin: 10px;
             width: 300px;
+            background: #222;
+            padding: 10px;
+            border-radius: 10px;
         }
         img {
             width: 100%;
+            border-radius: 5px;
+        }
+        .custom-filter {
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
-    <h1>最新のYouTube動画</h1>
+    <h1>YouTube Dashboard</h1>
+    <div class="tab-container">
+        <div class="tab active" id="allTab">全チャンネル</div>
+        <div class="tab" id="customTab">カスタムタブ</div>
+    </div>
+    
+    <div id="customFilter" class="custom-filter" style="display: none;">
+        <label>表示するチャンネルを選択：</label>
+        <select id="channelSelect" multiple>
+            <!-- JavaScriptで追加 -->
+        </select>
+        <button onclick="updateCustomView()">適用</button>
+    </div>
+
     <div id="videos" class="video-container"></div>
 
     <script>
-        const API_KEY = "AIzaSyDfo595l2LQQWWhgWp5Mo89hxSdgr60w1E";  // 取得したAPIキーを入力
-        const CHANNEL_ID = "UC7_MFM9b8hp5kuTSpa8WyOQ";  // 取得したチャンネルIDを入力
-        const API_URL = `https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${CHANNEL_ID}&part=snippet&order=date&maxResults=5`;
+        const API_KEY = "AIzaSyDfo595l2LQQWWhgWp5Mo89hxSdgr60w1E";
+        const channels = [
+            { id: "UCX7YkU9nEeaoZbkVLVajcMg", name: "にじさんじ" },
+            { id: "UC_T8F2CvqZOwa2kme0WwRhg", name: "にじさんじ公式切り抜き" },
+            { id: "UCz6vnIbgiqFT9xUcD6Bp65Q", name: "ChroNoiR" },
+            { id: "UCGEMpMpll4otCdnnxQ9paFg", name: "sakuyui ch" },
+            { id: "UChqQiUSyI-Q1j3k57_mAJHA", name: "Rain Drops" }
+        ];
+        
+        const allTab = document.getElementById("allTab");
+        const customTab = document.getElementById("customTab");
+        const videosDiv = document.getElementById("videos");
+        const customFilter = document.getElementById("customFilter");
+        const channelSelect = document.getElementById("channelSelect");
+        
+        channels.forEach(ch => {
+            const option = document.createElement("option");
+            option.value = ch.id;
+            option.textContent = ch.name;
+            channelSelect.appendChild(option);
+        });
 
-        async function fetchVideos() {
-            try {
-                const response = await fetch(API_URL);
+        async function fetchVideos(channelIds) {
+            videosDiv.innerHTML = "Loading...";
+            let allVideos = [];
+            for (const channelId of channelIds) {
+                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet&order=date&maxResults=5`);
                 const data = await response.json();
-                const videosDiv = document.getElementById("videos");
-                videosDiv.innerHTML = "";
-
                 data.items.forEach(video => {
-                    const videoId = video.id.videoId;
-                    const title = video.snippet.title;
-                    const thumbnail = video.snippet.thumbnails.high.url;
-
-                    const videoElement = `
-                        <div class="video">
-                            <a href="https://www.youtube.com/watch?v=${videoId}" target="_blank">
-                                <img src="${thumbnail}" alt="${title}">
-                            </a>
-                            <p>${title}</p>
-                        </div>
-                    `;
-                    videosDiv.innerHTML += videoElement;
+                    allVideos.push({
+                        title: video.snippet.title,
+                        thumbnail: video.snippet.thumbnails.high.url,
+                        videoId: video.id.videoId,
+                        publishedAt: new Date(video.snippet.publishedAt)
+                    });
                 });
-            } catch (error) {
-                console.error("YouTube APIの取得に失敗しました", error);
             }
+            allVideos.sort((a, b) => b.publishedAt - a.publishedAt);
+            renderVideos(allVideos);
         }
-
-        fetchVideos();
+        
+        function renderVideos(videos) {
+            videosDiv.innerHTML = "";
+            videos.forEach(video => {
+                videosDiv.innerHTML += `
+                    <div class="video">
+                        <a href="https://www.youtube.com/watch?v=${video.videoId}" target="_blank">
+                            <img src="${video.thumbnail}" alt="${video.title}">
+                        </a>
+                        <p>${video.title}</p>
+                    </div>
+                `;
+            });
+        }
+        
+        function updateCustomView() {
+            const selectedChannels = Array.from(channelSelect.selectedOptions).map(opt => opt.value);
+            fetchVideos(selectedChannels);
+        }
+        
+        allTab.addEventListener("click", () => {
+            allTab.classList.add("active");
+            customTab.classList.remove("active");
+            customFilter.style.display = "none";
+            fetchVideos(channels.map(ch => ch.id));
+        });
+        
+        customTab.addEventListener("click", () => {
+            customTab.classList.add("active");
+            allTab.classList.remove("active");
+            customFilter.style.display = "block";
+            videosDiv.innerHTML = "チャンネルを選択してください";
+        });
+        
+        fetchVideos(channels.map(ch => ch.id));
     </script>
 </body>
 </html>
