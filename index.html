@@ -172,9 +172,22 @@
         document.getElementById("darkModeToggle").addEventListener("click", () => {
             document.body.classList.toggle("dark-mode");
         });
+        
+        document.getElementById("allTab").addEventListener("click", () => {
+            document.getElementById("allTab").classList.add("active");
+            document.getElementById("customTab").classList.remove("active");
+            document.getElementById("customFilter").style.display = "none";
+            fetchVideos(channels.map(ch => ch.id));
+        });
+        
+        document.getElementById("customTab").addEventListener("click", () => {
+            document.getElementById("customTab").classList.add("active");
+            document.getElementById("allTab").classList.remove("active");
+            document.getElementById("customFilter").style.display = "block";
+            document.body.classList.toggle("dark-mode");
+        });
 
-        loadChannels();
-        fetchVideos(channels.map(ch => ch.id));
+        loadChannels().then(() => fetchVideos(channels.map(ch => ch.id)));
     </script>
 </body>
 </html>
