@@ -11,21 +11,6 @@
             color: white;
             text-align: center;
         }
-        .tab-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #333;
-            border-radius: 5px;
-        }
-        .active {
-            background: #666;
-        }
         .video-container {
             display: flex;
             flex-wrap: wrap;
@@ -42,9 +27,6 @@
             width: 100%;
             border-radius: 5px;
         }
-        .custom-filter {
-            display: none;
-        }
         .modal {
             display: none;
             position: fixed;
@@ -60,20 +42,17 @@
             background: #333;
             padding: 20px;
             border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+            width: 400px;
         }
     </style>
 </head>
 <body>
     <h1>YouTube Dashboard</h1>
     <button id="darkModeToggle">ダークモード切替</button>
-    <div class="tab-container">
-        <div class="tab active" id="allTab">全チャンネル</div>
-        <div class="tab" id="customTab">カスタムタブ</div>
-    </div>
+    <button onclick="openModal()">チャンネル選択</button>
     
-    <div id="customFilter" class="custom-filter">
-        <button onclick="openModal()">チャンネル選択</button>
-    </div>
     <div id="modal" class="modal">
         <div class="modal-content">
             <h2>チャンネルを選択</h2>
@@ -86,7 +65,7 @@
     <div id="videos" class="video-container"></div>
 
     <script>
-        const API_KEY = "AIzaSyDfo595l2LQQWWhgWp5Mo89hxSdgr60w1E";
+        const API_KEY = "YOUR_API_KEY";
         let channels = [];
         
         async function loadChannels() {
@@ -127,67 +106,11 @@
             closeModal();
         }
 
-        async function fetchVideos(channelIds) {
-            const videosDiv = document.getElementById("videos");
-            videosDiv.innerHTML = "Loading...";
-            let allVideos = [];
-            for (const channelId of channelIds) {
-                const response = await fetch(`https://www.googleapis.com/youtube/v3/search?key=${API_KEY}&channelId=${channelId}&part=snippet&order=date&maxResults=5`);
-                const data = await response.json();
-                for (const video of data.items) {
-                    const details = await fetch(`https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&id=${video.id.videoId}&part=contentDetails`);
-                    const detailsData = await details.json();
-                    const duration = detailsData.items[0]?.contentDetails?.duration || "N/A";
-                    allVideos.push({
-                        title: video.snippet.title,
-                        channelName: video.snippet.channelTitle,
-                        thumbnail: video.snippet.thumbnails.high.url,
-                        videoId: video.id.videoId,
-                        publishedAt: new Date(video.snippet.publishedAt),
-                        duration: duration
-                    });
-                }
-            }
-            allVideos.sort((a, b) => b.publishedAt - a.publishedAt);
-            renderVideos(allVideos);
-        }
-
-        function renderVideos(videos) {
-            const videosDiv = document.getElementById("videos");
-            videosDiv.innerHTML = "";
-            videos.forEach(video => {
-                videosDiv.innerHTML += `
-                    <div class="video">
-                        <a href="https://www.youtube.com/watch?v=${video.videoId}" target="_blank">
-                            <img src="${video.thumbnail}" alt="${video.title}">
-                        </a>
-                        <p>${video.title}</p>
-                        <p>${video.channelName}</p>
-                        <p>長さ: ${video.duration}</p>
-                    </div>
-                `;
-            });
-        }
-        
         document.getElementById("darkModeToggle").addEventListener("click", () => {
             document.body.classList.toggle("dark-mode");
         });
-        
-        document.getElementById("allTab").addEventListener("click", () => {
-            document.getElementById("allTab").classList.add("active");
-            document.getElementById("customTab").classList.remove("active");
-            document.getElementById("customFilter").style.display = "none";
-            fetchVideos(channels.map(ch => ch.id));
-        });
-        
-        document.getElementById("customTab").addEventListener("click", () => {
-            document.getElementById("customTab").classList.add("active");
-            document.getElementById("allTab").classList.remove("active");
-            document.getElementById("customFilter").style.display = "block";
-            document.body.classList.toggle("dark-mode");
-        });
 
-        loadChannels().then(() => fetchVideos(channels.map(ch => ch.id)));
+        loadChannels();
     </script>
 </body>
 </html>
