@@ -136,6 +136,11 @@
         function applyCustomFilter() {
             const selectedChannels = Array.from(document.querySelectorAll("#channelCheckboxes input:checked"))
                 .map(input => input.value);
+            console.log("Selected Channels:", selectedChannels);
+            if (selectedChannels.length === 0) {
+                alert("少なくとも1つのチャンネルを選択してください。");
+                return;
+            }
             localStorage.setItem("customChannels", JSON.stringify(selectedChannels));
             fetchVideos(selectedChannels);
             closeModal();
