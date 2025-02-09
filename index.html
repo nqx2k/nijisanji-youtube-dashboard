@@ -128,6 +128,7 @@
         }
 
         async function fetchVideos(channelIds) {
+            const videosDiv = document.getElementById("videos");
             videosDiv.innerHTML = "Loading...";
             let allVideos = [];
             for (const channelId of channelIds) {
