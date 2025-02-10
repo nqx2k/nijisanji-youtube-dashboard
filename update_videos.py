@@ -3,7 +3,7 @@ import requests
 import json
 import time
 
-# GitHub Actions から APIキーを取得
+# GitHub Secrets から APIキーを取得
 API_KEYS = [
     os.getenv("YOUTUBE_API_KEY_1"),
     os.getenv("YOUTUBE_API_KEY_2"),
@@ -23,7 +23,7 @@ def get_api_key():
     return key
 
 # YouTube API から動画を取得
-def fetch_videos(channel_id):
+def fetch_videos(channel_id, channel_name):
     api_key = get_api_key()
     url = f"https://www.googleapis.com/youtube/v3/search?key={api_key}&channelId={channel_id}&part=snippet,id&type=video&order=date&maxResults=5"
     
@@ -40,7 +40,8 @@ def fetch_videos(channel_id):
                 "title": item["snippet"]["title"],
                 "thumbnail": item["snippet"]["thumbnails"]["high"]["url"],
                 "videoId": item["id"]["videoId"],
-                "publishedAt": item["snippet"]["publishedAt"]
+                "channelName": channel_name,  # チャンネル名を追加
+                "publishedAt": item["snippet"]["publishedAt"]  # 投稿日時を追加
             })
     
     return videos
@@ -51,8 +52,9 @@ def update_cached_videos():
     
     for channel in channels:
         channel_id = channel["id"]
-        print(f"Fetching videos for {channel_id}...")
-        videos = fetch_videos(channel_id)
+        channel_name = channel["name"]
+        print(f"Fetching videos for {channel_id} ({channel_name})...")
+        videos = fetch_videos(channel_id, channel_name)
         cached_videos.extend(videos)
         time.sleep(1)
     
