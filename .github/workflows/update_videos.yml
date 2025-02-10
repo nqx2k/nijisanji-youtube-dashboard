@@ -1,0 +1,36 @@
+name: Update YouTube Videos
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # 30分ごとに実行
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v3
+
+      - name: Pythonをセットアップ
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: 依存関係をインストール
+        run: pip install requests
+
+      - name: YouTubeデータ取得スクリプトを実行
+        env:
+          YOUTUBE_API_KEY_1: ${{ secrets.YOUTUBE_API_KEY_1 }}
+          YOUTUBE_API_KEY_2: ${{ secrets.YOUTUBE_API_KEY_2 }}
+          YOUTUBE_API_KEY_3: ${{ secrets.YOUTUBE_API_KEY_3 }}
+        run: python update_videos.py
+
+      - name: JSONをコミット＆プッシュ
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add cached_videos.json
+          git commit -m "Update cached videos" || echo "No changes to commit"
+          git push
