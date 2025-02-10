@@ -8,9 +8,14 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # 🔥 GitHub Actions にリポジトリの書き込み権限を付与
+    
     steps:
       - name: リポジトリをチェックアウト
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # 🔥 GITHUB_TOKEN を使用
 
       - name: Pythonをセットアップ
         uses: actions/setup-python@v4
@@ -29,8 +34,8 @@ jobs:
 
       - name: JSONをコミット＆プッシュ
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add cached_videos.json
           git commit -m "Update cached videos" || echo "No changes to commit"
-          git push
+          git push origin main
